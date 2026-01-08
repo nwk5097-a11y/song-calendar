@@ -62,5 +62,5 @@ export function mapScheduleData(
         return null;
       }
     })
-    .filter((event): event is { date: Date; title: string; description?: string } => event !== null);
+    .filter((event) => event !== null) as { date: Date; title: string; description?: string }[];
 }
