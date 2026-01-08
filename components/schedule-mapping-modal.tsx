@@ -15,6 +15,12 @@ interface ScheduleMappingModalProps {
 
 const WORK_TYPES = ["휴무", "근무"];
 
+// 기본 매핑 규칙 (ATDO, ADO 등은 자동으로 휴무로 처리)
+const defaultMappingRules: Record<string, string> = {
+  "휴무": "ATDO,ADO,OFF,휴,X,휴무",
+  "근무": "KE,FLIGHT,비행,근무",
+};
+
 export function ScheduleMappingModal({
   open,
   onOpenChange,
@@ -25,12 +31,6 @@ export function ScheduleMappingModal({
     "휴무": "",
     "근무": "",
   });
-
-  // 기본 매핑 규칙 (ATDO, ADO 등은 자동으로 휴무로 처리)
-  const defaultMappingRules: Record<string, string> = {
-    "휴무": "ATDO,ADO,OFF,휴,X,휴무",
-    "근무": "KE,FLIGHT,비행,근무",
-  };
 
   // 로컬 스토리지에서 매핑 규칙 불러오기
   React.useEffect(() => {
@@ -100,7 +100,7 @@ export function ScheduleMappingModal({
           description: `근무표에서 추출: ${item.text}`,
         };
       })
-      .filter((event): event is { date: Date; title: string; description?: string } => event !== null);
+      .filter((event): event is { date: Date; title: string; description: string } => event !== null);
 
     onConfirm(mappedEvents);
     onOpenChange(false);
@@ -124,7 +124,7 @@ export function ScheduleMappingModal({
           description: `근무표에서 추출: ${item.text}`,
         };
       })
-      .filter((event): event is { date: Date; title: string; description?: string } => event !== null);
+      .filter((event): event is { date: Date; title: string; description: string } => event !== null);
 
     onConfirm(mappedEvents);
     onOpenChange(false);
