@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 0 0% 100%;
+  --foreground: 222.2 84% 4.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 84% 4.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 84% 4.9%;
+  --primary: 330 81% 60%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 330 40% 96%;
+  --secondary-foreground: 330 5% 20%;
+  --muted: 330 40% 96%;
+  --muted-foreground: 330 5% 40%;
+  --accent: 330 40% 96%;
+  --accent-foreground: 330 5% 20%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 330 20% 85%;
+  --input: 330 20% 85%;
+  --ring: 330 81% 60%;
+  --radius: 0.5rem;
+  --chart-1: 330 81% 60%;
+  --chart-2: 330 81% 70%;
+  --chart-3: 330 81% 80%;
+  --chart-4: 330 81% 90%;
+  --chart-5: 330 81% 95%;
+}
+
+* {
+  border-color: hsl(var(--border));
+}
+
+body {
+  color: hsl(var(--foreground));
+  background: linear-gradient(135deg, #fce7f3 0%, #fdf2f8 50%, #fef7ff 100%);
+  min-height: 100vh;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes zoom-in {
+  from {
+    transform: scale(0.95);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+.animate-in {
+  animation: fade-in 0.2s ease-out, zoom-in 0.2s ease-out;
+}
+
+.fade-in-0 {
+  animation: fade-in 0.2s ease-out;
+}
+
+.zoom-in-95 {
+  animation: zoom-in 0.2s ease-out;
+}
