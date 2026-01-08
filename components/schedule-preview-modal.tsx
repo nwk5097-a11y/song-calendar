@@ -43,7 +43,7 @@ export function SchedulePreviewModal({
             return null;
           }
         })
-        .filter((item): item is { date: Date; type: string; reasoning?: string } => item !== null);
+        .filter((item) => item !== null) as { date: Date; type: string; reasoning?: string }[];
       setScheduleItems(items);
     }
   }, [open, extractedData]);
