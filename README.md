@@ -162,3 +162,4 @@ npm start
 - Supabase 테이블을 먼저 생성해야 일정 저장 기능이 작동합니다.
 - 환경 변수 변경 후에는 개발 서버를 재시작해야 합니다.
 # love-calendar-2026
+# song-calendar
