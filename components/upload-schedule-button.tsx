@@ -92,16 +92,149 @@ export function UploadScheduleButton({ onScheduleExtracted }: UploadScheduleButt
     }
   };
 
-  const fileToBase64 = (file: File): Promise<string> => {
+  // 이미지 전처리: 채도와 대비 향상
+  const enhanceImage = (image: HTMLImageElement): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      try {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          reject(new Error("Canvas context를 가져올 수 없습니다."));
+          return;
+        }
+
+        canvas.width = image.width;
+        canvas.height = image.height;
+
+        // 원본 이미지 그리기
+        ctx.drawImage(image, 0, 0);
+
+        // 이미지 데이터 가져오기
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imageData.data;
+
+        // 채도와 대비 향상 파라미터
+        const saturationBoost = 1.5; // 채도 50% 증가
+        const contrastBoost = 1.3; // 대비 30% 증가
+        const brightnessAdjust = 1.05; // 밝기 약간 증가
+
+        // 각 픽셀 처리
+        for (let i = 0; i < data.length; i += 4) {
+          const r = data[i];
+          const g = data[i + 1];
+          const b = data[i + 2];
+
+          // RGB를 HSL로 변환 (간단한 버전)
+          const max = Math.max(r, g, b);
+          const min = Math.min(r, g, b);
+          const l = (max + min) / 2;
+          const delta = max - min;
+
+          let h = 0;
+          let s = 0;
+
+          if (delta !== 0) {
+            s = delta / (255 - Math.abs(2 * l - 255));
+            
+            if (max === r) {
+              h = ((g - b) / delta) % 6;
+            } else if (max === g) {
+              h = (b - r) / delta + 2;
+            } else {
+              h = (r - g) / delta + 4;
+            }
+            h *= 60;
+            if (h < 0) h += 360;
+          }
+
+          // 채도 향상
+          s = Math.min(1, s * saturationBoost);
+
+          // 밝기 조정
+          let newL = l * brightnessAdjust;
+          newL = Math.min(255, Math.max(0, newL));
+
+          // 대비 향상 (중간값 128 기준)
+          newL = (newL - 128) * contrastBoost + 128;
+          newL = Math.min(255, Math.max(0, newL));
+
+          // HSL을 RGB로 다시 변환
+          const c = (1 - Math.abs(2 * newL / 255 - 1)) * s * 255;
+          const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+          const m = newL - c / 2;
+
+          let newR = 0, newG = 0, newB = 0;
+
+          if (h < 60) {
+            newR = c; newG = x; newB = 0;
+          } else if (h < 120) {
+            newR = x; newG = c; newB = 0;
+          } else if (h < 180) {
+            newR = 0; newG = c; newB = x;
+          } else if (h < 240) {
+            newR = 0; newG = x; newB = c;
+          } else if (h < 300) {
+            newR = x; newG = 0; newB = c;
+          } else {
+            newR = c; newG = 0; newB = x;
+          }
+
+          data[i] = Math.min(255, Math.max(0, newR + m));
+          data[i + 1] = Math.min(255, Math.max(0, newG + m));
+          data[i + 2] = Math.min(255, Math.max(0, newB + m));
+        }
+
+        // 수정된 이미지 데이터를 캔버스에 다시 그리기
+        ctx.putImageData(imageData, 0, 0);
+
+        // Canvas를 base64로 변환
+        const base64String = canvas.toDataURL("image/jpeg", 0.95);
+        // data:image/jpeg;base64, 부분 제거
+        const base64 = base64String.includes(",") 
+          ? base64String.split(",")[1] 
+          : base64String;
+
+        resolve(base64);
+      } catch (error) {
+        reject(error);
+      }
+    });
+  };
+
+  const fileToBase64 = async (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onload = () => {
-        const result = reader.result as string;
-        // data:image/jpeg;base64, 부분 제거
-        const base64String = result.includes(",") 
-          ? result.split(",")[1] 
-          : result;
-        resolve(base64String);
+      reader.onload = async () => {
+        try {
+          const result = reader.result as string;
+          
+          // 이미지 로드
+          const img = new Image();
+          img.onload = async () => {
+            try {
+              // 이미지 전처리 (채도, 대비 향상)
+              const enhancedBase64 = await enhanceImage(img);
+              resolve(enhancedBase64);
+            } catch (error) {
+              // 전처리 실패 시 원본 사용
+              console.warn("이미지 전처리 실패, 원본 사용:", error);
+              const base64String = result.includes(",") 
+                ? result.split(",")[1] 
+                : result;
+              resolve(base64String);
+            }
+          };
+          img.onerror = () => {
+            // 이미지 로드 실패 시 원본 사용
+            const base64String = result.includes(",") 
+              ? result.split(",")[1] 
+              : result;
+            resolve(base64String);
+          };
+          img.src = result;
+        } catch (error) {
+          reject(error);
+        }
       };
       reader.onerror = reject;
       reader.readAsDataURL(file);
